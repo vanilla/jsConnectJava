@@ -1,6 +1,6 @@
 # Vanilla jsConnect Client Library for Java #
 
-This is repository contains the files you need to use Vanilla's jsConnect with a java project.
+This repository contains the files you need to use Vanilla's jsConnect with a java project.
 
 The following files are included in this repo.
 
