@@ -1,4 +1,4 @@
-package Vanilla;
+package com.vanillaforums.vanilla;
 
 import java.util.*;
 
