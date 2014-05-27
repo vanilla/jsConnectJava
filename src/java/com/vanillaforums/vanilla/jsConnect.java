@@ -1,19 +1,26 @@
-package com.vanillaforums.vanilla;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.bind.DatatypeConverter;
 
 /**
  * @author Todd Burry <todd@vanillaforums.com>
- * @version 1.0b
- * This object contains the client code for Vanilla jsConnect signle-sign-on.
+ * @version 1.0b This object contains the client code for Vanilla jsConnect
+ * single-sign-on.
  */
 public class jsConnect {
 
    /**
     * Convenience method that returns a map representing an error.
+    *
     * @param code The code of the error.
     * @param message A user-readable message for the error.
-    * @return 
+    * @return
     */
    protected static Map Error(String code, String message) {
       Map result = new HashMap();
@@ -25,13 +32,20 @@ public class jsConnect {
 
    /**
     * Returns a JSONP formatted string suitable to be consumed by jsConnect.
-    * This is usually the only method you need to call in order to implement jsConnect.
-    * @param user A map containing the user information. The map should have the following keys:
-    *  - uniqueid: An ID that uniquely identifies the user in your system. This value should never change for a given user.
-    * @param request: A map containing the query string for the current request. You usually just pass in request.getParameterMap().
-    * @param clientID: The client ID for your site. This is usually configured on Vanilla's jsConnect configuration page.
-    * @param secret: The secret for your site. This is usually configured on Vanilla's jsConnect configuration page.
-    * @param secure: Whether or not to check security on the request. You can leave this false for testing, but you should make it true in production.
+    * This is usually the only method you need to call in order to implement
+    * jsConnect.
+    *
+    * @param user A map containing the user information. The map should have
+    * the following keys: - uniqueid: An ID that uniquely identifies the user
+    * in your system. This value should never change for a given user.
+    * @param request: A map containing the query string for the current
+    * request. You usually just pass in request.getParameterMap().
+    * @param clientID: The client ID for your site. This is usually configured
+    * on Vanilla's jsConnect configuration page.
+    * @param secret: The secret for your site. This is usually configured on
+    * Vanilla's jsConnect configuration page.
+    * @param secure: Whether or not to check security on the request. You can
+    * leave this false for testing, but you should make it true in production.
     * @return The JSONP formatted string representing the current user.
     */
    public static String GetJsConnectString(Map user, Map request, String clientID, String secret, Boolean secure) {
@@ -98,6 +112,7 @@ public class jsConnect {
 
    /**
     * JSON encode some data.
+    *
     * @param data The data to encode.
     * @return The JSON encoded data.
     */
@@ -127,6 +142,7 @@ public class jsConnect {
 
    /**
     * Compute the MD5 hash of a string.
+    *
     * @param password The data to compute the hash on.
     * @return A hex encoded string representing the MD5 hash of the string.
     */
@@ -135,27 +151,32 @@ public class jsConnect {
          java.security.MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
          digest.update(password.getBytes("UTF-8"));
          byte[] hash = digest.digest();
-
-         StringBuilder ret = new StringBuilder();
-         for (int i = 0; i < hash.length; i++) {
-            String hex = Integer.toHexString(0xFF & hash[i]);
-            if (hex.length() == 1) {
-               // could use a for loop, but we're only dealing with a single byte
-               ret.append('0');
-            }
-            ret.append(hex);
-         }
-         return ret.toString();
+         return hexEncode(hash);
       } catch (Exception ex) {
          return "ERROR";
       }
    }
 
+   public static String hexEncode(byte[] hash) {
+      StringBuilder ret = new StringBuilder();
+      for (int i = 0; i < hash.length; i++) {
+         String hex = Integer.toHexString(0xFF & hash[i]);
+         if (hex.length() == 1) {
+            // could use a for loop, but we're only dealing with a single byte
+            ret.append('0');
+         }
+         ret.append(hex);
+      }
+      return ret.toString();
+   }
+
    /**
     * Get a value from a map.
+    *
     * @param request The map to get the value from.
     * @param key The key of the value.
-    * @param defaultValue The default value if the map doesn't contain the value.
+    * @param defaultValue The default value if the map doesn't contain the
+    * value.
     * @return The value from the map or the default if it isn't found.
     */
    protected static String Val(Map request, String key, String defaultValue) {
@@ -177,6 +198,7 @@ public class jsConnect {
 
    /**
     * Get a value from a map.
+    *
     * @param request The map to get the value from.
     * @param key The key of the value.
     * @return The value from the map or the null if it isn't found.
@@ -186,11 +208,16 @@ public class jsConnect {
    }
 
    /**
-    * Sign a jsConnect response. Responses are signed so that the site requesting the response knows that this is a valid site signing in.
+    * Sign a jsConnect response. Responses are signed so that the site
+    * requesting the response knows that this is a valid site signing in.
+    *
     * @param data The data to sign.
-    * @param clientID The client ID of the site. This is usually configured on Vanilla's jsConnect configuration page.
-    * @param secret The secret of the site. This is usually configured on Vanilla's jsConnect configuration page.
-    * @param setData Whether or not to add the signature information to the data.
+    * @param clientID The client ID of the site. This is usually configured on
+    * Vanilla's jsConnect configuration page.
+    * @param secret The secret of the site. This is usually configured on
+    * Vanilla's jsConnect configuration page.
+    * @param setData Whether or not to add the signature information to the
+    * data.
     * @return The computed signature of the data.
     */
    public static String SignJsConnect(Map data, String clientID, String secret, Boolean setData) {
@@ -233,11 +260,67 @@ public class jsConnect {
    }
 
    /**
-    * Returns the current timestamp of the server, suitable for synching with the site.
+    * Returns a string suitable for embedded SSO or API calls.
+    *
+    * @param user A map containing the user information. The map should have
+    * the following keys: - uniqueid: An ID that uniquely identifies the user
+    * in your system. This value should never change for a given user.
+    * @param clientID: The client ID for your site. This is usually configured
+    * on Vanilla's jsConnect configuration page.
+    * @param secret: The secret for your site. This is usually configured on
+    * Vanilla's jsConnect configuration page.
+    * @return SSO string.
+    */
+   public static String SSOString(Map user, String client_id, String secret) throws InvalidKeyException {
+
+      if (!user.containsKey("client_id")) {
+         user.put("client_id", client_id);
+      }
+      if (user.get("client_id") == null || user.get("client_id") == "") {
+         user.put("client_id", client_id);
+      }
+
+      String jsonBase64String = new String(DatatypeConverter.printBase64Binary(JsonEncode(user).getBytes()));
+      String timestamp = String.valueOf(Timestamp());
+
+      // Build the signature string.
+      StringBuilder signatureString = new StringBuilder();
+      signatureString.append(jsonBase64String);
+      signatureString.append(" ");
+      signatureString.append(timestamp);
+
+      Mac mac;
+      byte[] result = null;
+
+      SecretKeySpec keySpec = new SecretKeySpec(secret.getBytes(), "HmacSHA1");
+
+      try {
+         mac = Mac.getInstance("HmacSHA1");
+         mac.init(keySpec);
+         result = mac.doFinal(signatureString.toString().getBytes());
+
+      } catch (NoSuchAlgorithmException ex) {
+         Logger.getLogger(jsConnect.class.getName()).log(Level.SEVERE, null, ex);
+      }
+
+      String usertext = jsonBase64String;
+      String timestamptext = timestamp;
+      String hash = new String(hexEncode(result));
+
+      String returnValue = usertext + " " + hash + " " + timestamptext + " hmacsha1";
+
+      return returnValue;
+   }
+
+   /**
+    * Returns the current timestamp of the server, suitable for synching with
+    * the site.
+    *
     * @return The current timestamp.
     */
    public static long Timestamp() {
       long result = System.currentTimeMillis() / 1000;
       return result;
    }
+
 }
