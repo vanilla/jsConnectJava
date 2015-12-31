@@ -1,3 +1,4 @@
+ package com.vanillaforums.vanilla;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
