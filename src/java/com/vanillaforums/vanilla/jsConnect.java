@@ -11,7 +11,7 @@ import javax.xml.bind.DatatypeConverter;
 
 /**
  * @author Todd Burry <todd@vanillaforums.com>
- * @version 1.0b This object contains the client code for Vanilla jsConnect
+ * @version 1.0 This object contains the client code for Vanilla jsConnect
  * single-sign-on.
  */
 public class jsConnect {
