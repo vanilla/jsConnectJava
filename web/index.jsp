@@ -1,6 +1,4 @@
-
-<%@page contentType="application/json" pageEncoding="UTF-8"%>
-<%
+<%@page contentType="application/json" pageEncoding="UTF-8"%><%
 // 1. Get your client ID and secret here. These must match those in your jsConnect settings.
 String clientID = "123";
 String secret = "123";
@@ -15,15 +13,15 @@ java.util.HashMap user = new java.util.LinkedHashMap();
 
 if (signedIn) {
    // CHANGE THESE FOUR LINES.
-   user.put("uniqueid", "1");
-   user.put("name", "John Iñtërnâtiônàlizætiøn");
-   user.put("email", "john.doe@anonymous.com");
+   user.put("uniqueid", "123");
+   user.put("name", "John Java");
+   user.put("email", "john.java@example.com");
    user.put("photourl", "");
 }
 
 // 4. Generate the jsConnect string.
 Boolean secure = true; // this should be true unless you are testing.
-String js = Vanilla.jsConnect.GetJsConnectString(user, request.getParameterMap(), clientID, secret, secure);
+String js = com.vanillaforums.vanilla.jsConnect.GetJsConnectString(user, request.getParameterMap(), clientID, secret, secure);
 
 out.write(js);
 %>
