@@ -73,12 +73,11 @@ public class jsConnect {
             } else if (!Val(request, "client_id").equals(clientID)) {
                 error = jsConnect.Error("invalid_client", "Unknown client " + Val(request, "client_id") + ".");
             } else if (Val(request, "timestamp") == null && Val(request, "sig") == null) {
+                error = new HashMap();
                 if (user != null && !user.isEmpty()) {
-                    error = new HashMap();
-                    error.put("name", user.get("name"));
+                    error.put("name", user.containsKey("name") ? user.get("name") : "");
                     error.put("photourl", user.containsKey("photourl") ? user.get("photourl") : "");
                 } else {
-                    error = new HashMap();
                     error.put("name", "");
                     error.put("photourl", "");
                 }
