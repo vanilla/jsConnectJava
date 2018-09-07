@@ -18,6 +18,7 @@ public class jsConnect {
 
     static final String VERSION = "2";
     static final int TIMEOUT = 24 * 60;
+    static final String HASH_ALGORITHM = "MD5";
 
     /**
      * Convenience method that returns a map representing an error.
@@ -93,7 +94,7 @@ public class jsConnect {
                 error = jsConnect.Error("invalid_request", "Missing the ip parameter.");
             } else {
                 // Make sure the signature checks out.
-                String sig = jsConnect.MD5(Val(request, "ip") + Val(request, "nonce") + Long.toString(timestamp) + secret);
+                String sig = jsConnect.hash(Val(request, "ip") + Val(request, "nonce") + Long.toString(timestamp) + secret);
                 if (!sig.equals(Val(request, "sig"))) {
                     error = jsConnect.Error("access_denied", "Signature invalid.");
                 }
@@ -155,14 +156,14 @@ public class jsConnect {
     }
 
     /**
-     * Compute the MD5 hash of a string.
+     * Compute the hash of a string.
      *
      * @param password The data to compute the hash on.
-     * @return A hex encoded string representing the MD5 hash of the string.
+     * @return A hex encoded string representing the hash of the string.
      */
-    public static String MD5(String password) {
+    public static String hash(String password) {
         try {
-            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance(HASH_ALGORITHM);
             digest.update(password.getBytes("UTF-8"));
             byte[] hash = digest.digest();
             return hexEncode(hash);
@@ -264,7 +265,7 @@ public class jsConnect {
         }
 
         // MD5 sign the String with the secret.
-        String signature = jsConnect.MD5(sigStr.toString() + secret);
+        String signature = jsConnect.hash(sigStr.toString() + secret);
 
         if (setData) {
             data.put("clientid", clientID);
