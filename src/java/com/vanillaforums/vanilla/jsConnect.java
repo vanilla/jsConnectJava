@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.DatatypeConverter;
+import org.apache.commons.text.StringEscapeUtils;
 
 /**
  * @author Todd Burry <todd@vanillaforums.com>
@@ -118,6 +119,7 @@ public class jsConnect {
         }
 
         String json = jsConnect.JsonEncode(result);
+        request.callback =  StringEscapeUtils.escapeHtml(request.callback);
         if (Val(request, "callback") == null) {
             return json;
         } else {
