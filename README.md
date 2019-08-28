@@ -8,3 +8,7 @@ The following files are included in this repo.
   This is the main file you need. You don't need any other file in your project. You can just drop this file anywhere that you can access it on your site.
 * `web/index.jsp`
   This file offers an example usage. You can customize this page or start from scratch.
+  
+## Requirements
+1. Java 8
+1. Apache Commons Text v1
