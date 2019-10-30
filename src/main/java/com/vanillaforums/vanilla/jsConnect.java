@@ -126,7 +126,7 @@ public class jsConnect {
             } else if (!Val(request, "client_id").equals(clientID)) {
                 error = jsConnect.Error("invalid_client", "Unknown client " + Val(request, "client_id") + ".");
             } else if (Val(request, "timestamp") == null && Val(request, "sig") == null) {
-                error = new HashMap<String, String>();
+                error = new HashMap<String, Object>();
                 if (user != null && !user.isEmpty()) {
                     error.put("name", user.containsKey("name") ? user.get("name") : "");
                     error.put("photourl", user.containsKey("photourl") ? user.get("photourl") : "");
@@ -167,7 +167,7 @@ public class jsConnect {
             result.put("sig", signature);
             result.put("v", VERSION);
         } else {
-            result = new LinkedHashMap();
+            result = new LinkedHashMap<String, String>();
             result.put("name", "");
             result.put("photourl", "");
         }
@@ -188,14 +188,13 @@ public class jsConnect {
      */
     public static String JsonEncode(Map data) {
         StringBuilder result = new StringBuilder();
-        Iterator iterator = data.entrySet().iterator();
 
-        while (iterator.hasNext()) {
+        for (Object o : data.entrySet()) {
             if (result.length() > 0) {
                 result.append(",");
             }
 
-            Map.Entry v = (Map.Entry) iterator.next();
+            Map.Entry v = (Map.Entry) o;
 
             String key = v.getKey().toString();
             key = key.replace("\"", "\\\"");
