@@ -1,4 +1,4 @@
-<%@page contentType="application/json" pageEncoding="UTF-8"%><%
+<%@page contentType="application/javascript" pageEncoding="UTF-8"%><%
 // 1. Get your client ID and secret here. These must match those in your jsConnect settings.
 String clientID = "123";
 String secret = "123";
@@ -20,8 +20,7 @@ if (signedIn) {
 }
 
 // 4. Generate the jsConnect string.
-Boolean secure = true; // this should be true unless you are testing.
-String js = com.vanillaforums.vanilla.jsConnect.GetJsConnectString(user, request.getParameterMap(), clientID, secret, secure);
+String js = com.vanillaforums.vanilla.jsConnect.GetJsConnectString(user, request.getParameterMap(), clientID, secret, "sha256");
 
 out.write(js);
 %>
