@@ -10,8 +10,7 @@ import java.util.logging.Logger;
 
 /**
  * @author Todd Burry <todd@vanillaforums.com>
- * @version 2.0 This object contains the client code for Vanilla jsConnect
- * single-sign-on.
+ * @version 2.0 This object contains the client code for Vanilla jsConnect single-sign-on.
  */
 public class jsConnect {
 
@@ -55,6 +54,7 @@ public class jsConnect {
      * leave this false for testing, but you should make it true in production.
      * @return The JSONP formatted string representing the current user.
      */
+    @Deprecated
     public static String GetJsConnectString(Map user, Map request, String clientID, String secret, Boolean secure) {
         return GetJsConnectString(user, request, clientID, secret, HASH_MD5, secure);
     }
@@ -257,11 +257,17 @@ public class jsConnect {
      * @param password The data to compute the hash on.
      * @return A hex encoded string representing the hash of the string.
      */
+    @Deprecated
     public static String hash(String password) {
         return hash(password, HASH_MD5);
     }
 
-    public static String hexEncode(byte[] hash) {
+    /**
+     * Hex encode a byte array.
+     * @param hash The data to encode.
+     * @return
+     */
+    private static String hexEncode(byte[] hash) {
         StringBuilder ret = new StringBuilder();
         for (int i = 0; i < hash.length; i++) {
             String hex = Integer.toHexString(0xFF & hash[i]);
@@ -283,7 +289,7 @@ public class jsConnect {
      * value.
      * @return The value from the map or the default if it isn't found.
      */
-    protected static String Val(Map request, String key, String defaultValue) {
+    public static String Val(Map request, String key, String defaultValue) {
         try {
             Object result = null;
             if (request.containsKey(key)) {
@@ -307,7 +313,7 @@ public class jsConnect {
      * @param key The key of the value.
      * @return The value from the map or the null if it isn't found.
      */
-    protected static String Val(Map request, String key) {
+    public static String Val(Map request, String key) {
         return Val(request, key, null);
     }
 
@@ -367,6 +373,7 @@ public class jsConnect {
      * data.
      * @return The computed signature of the data.
      */
+    @Deprecated
     public static String SignJsConnect(Map data, String clientID, String secret, Boolean setData) {
         String signature = SignJsConnect(data, clientID, secret, HASH_MD5);
 
@@ -439,8 +446,7 @@ public class jsConnect {
         if (Now > 0) {
             return Now;
         } else {
-            long result = System.currentTimeMillis() / 1000;
-            return result;
+            return System.currentTimeMillis() / 1000;
         }
     }
 }
