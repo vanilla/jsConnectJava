@@ -1,4 +1,4 @@
-<%@page contentType="application/json" pageEncoding="UTF-8"%><%
+<%@page contentType="application/javascript" pageEncoding="UTF-8"%><%
 // 1. Get your client ID and secret here. These must match those in your jsConnect settings.
 String clientID = "123";
 String secret = "123";

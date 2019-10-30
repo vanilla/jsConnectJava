@@ -13,18 +13,23 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class WriteJsConnectTest {
-
     public static final String CLIENT_ID = "clientID";
     public static final String SECRET = "secret";
 
     static void assertJsConnect(Map user, Map request, JSONObject expected, Boolean setTimestamp) throws JSONException {
         if (setTimestamp && request.containsKey("timestamp")) {
-            String timestamp = request.get("timestamp").toString();
-            jsConnect.Now = Long.parseLong(timestamp);
+            fixTimestamp(request);
         }
 
         String actual = jsConnect.GetJsConnectString(user, request, CLIENT_ID, SECRET, "sha256");
-        JSONAssert.assertEquals("jsConnect strings don't match.", actual, expected, JSONCompareMode.LENIENT);
+        JSONObject actualJSON = new JSONObject(actual);
+
+        JSONAssert.assertEquals("jsConnect strings don't match.", expected, actualJSON, JSONCompareMode.STRICT);
+    }
+
+    private static void fixTimestamp(Map request) {
+        String timestamp = request.get("timestamp").toString();
+        jsConnect.Now = Long.parseLong(timestamp);
     }
 
     static void assertJsConnect(Map user, Map request, JSONObject expected) throws JSONException {
@@ -63,6 +68,23 @@ class WriteJsConnectTest {
     }
 
     @Test
+    void testDefaultNoSignature() throws JSONException {
+        HashMap<String, String> user = getDefaultUser();
+        user.put("photourl", "...");
+
+        Map<String, String> request = getDefaultRequest();
+        request.remove("timestamp");
+        request.remove("sig");
+
+        JSONObject js = new JSONObject();
+        js.put("name", "John PHP");
+        js.put("photourl", "...");
+        js.put("signedin", true);
+
+        assertJsConnect(user, request, js);
+    }
+
+    @Test
     void testDefaultBC() throws JSONException {
         Map<String, String> user = getDefaultUser();
         Map<String, String> request = getDefaultRequest();
@@ -81,8 +103,31 @@ class WriteJsConnectTest {
         String timestamp = request.get("timestamp");
         jsConnect.Now = Long.parseLong(timestamp);
 
-        String actual = jsConnect.GetJsConnectString(user, request, CLIENT_ID, SECRET, true);
-        JSONAssert.assertEquals("jsConnect strings don't match.", actual, js, JSONCompareMode.LENIENT);
+        JSONObject actual = new JSONObject(jsConnect.GetJsConnectString(user, request, CLIENT_ID, SECRET, true));
+        JSONAssert.assertEquals("jsConnect strings don't match.", js, actual, JSONCompareMode.LENIENT);
+    }
+
+    @Test
+    void testGuest() throws JSONException {
+        Map<String, String> user = new HashMap<>();
+        Map<String, String> request = getDefaultRequest();
+
+        JSONObject js = new JSONObject();
+        js.put("name", "");
+        js.put("photourl", "");
+
+        assertJsConnect(user, request, js);
+    }
+
+    @Test
+    void testBasicCallback() {
+        Map<String, String> user = new HashMap<>();
+        Map<String, String> request = getDefaultRequest();
+        request.put("callback", "c");
+        fixTimestamp(request);
+
+        String actual = jsConnect.GetJsConnectString(user, request, CLIENT_ID, SECRET, "sha256");
+        assertEquals("c({\"name\":\"\",\"photourl\":\"\"});", actual);
     }
 
     private Map<String, String> getDefaultRequest() {
@@ -96,8 +141,8 @@ class WriteJsConnectTest {
         return request;
     }
 
-    private Map<String, String> getDefaultUser() {
-        Map<String, String> user = new HashMap<>();
+    private HashMap<String, String> getDefaultUser() {
+        HashMap<String, String> user = new HashMap<>();
         user.put("name", "John PHP");
         user.put("email", "john.php@example.com");
         user.put("unique_id", "123");

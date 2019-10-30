@@ -130,6 +130,7 @@ public class jsConnect {
                 if (user != null && !user.isEmpty()) {
                     error.put("name", user.containsKey("name") ? user.get("name") : "");
                     error.put("photourl", user.containsKey("photourl") ? user.get("photourl") : "");
+                    error.put("signedin", true);
                 } else {
                     error.put("name", "");
                     error.put("photourl", "");
@@ -191,7 +192,7 @@ public class jsConnect {
 
         while (iterator.hasNext()) {
             if (result.length() > 0) {
-                result.append(", ");
+                result.append(",");
             }
 
             Map.Entry v = (Map.Entry) iterator.next();
@@ -199,14 +200,22 @@ public class jsConnect {
             String key = v.getKey().toString();
             key = key.replace("\"", "\\\"");
 
-            String value = v.getValue().toString();
-            value = value.replace("\"", "\\\"");
+            String value;
             String q = "\"";
 
-            result.append(q + key + q + ": " + q + value + q);
+            if (v.getValue() == Boolean.TRUE) {
+                value = "true";
+            } else if (v.getValue() == Boolean.FALSE) {
+                value = "false";
+            } else {
+                value = v.getValue().toString();
+                value = q + value.replace("\"", "\\\"") + q;
+            }
+
+            result.append(q + key + q + ":" + value);
         }
 
-        return "{ " + result.toString() + " }";
+        return "{" + result.toString() + "}";
     }
 
     /**
@@ -388,7 +397,8 @@ public class jsConnect {
             user.put("client_id", client_id);
         }
 
-        String jsonBase64String = Base64.getEncoder().encodeToString(JsonEncode(user).getBytes());
+        String json = JsonEncode(user);
+        String jsonBase64String = Base64.getEncoder().encodeToString(json.getBytes());
         String timestamp = String.valueOf(Timestamp());
 
         // Build the signature string.
