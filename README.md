@@ -13,7 +13,7 @@ The following files are included in this repo.
   
 ## Change Log
 
-### Version 3
+### Version 2.1
 
 - Added support for SHA1 and SHA256 hashing. We strongly recommend you use one of these hash methods.
 - Removed dependencies on some external libraries.
