@@ -17,7 +17,6 @@ public class jsConnect {
 
     static final String VERSION = "2";
     static final int TIMEOUT = 24 * 60;
-    static final String HASH_ALGORITHM = "MD5";
     static long Now = 0;
 
     public static final String HASH_MD5 = "md5";
@@ -31,8 +30,8 @@ public class jsConnect {
      * @param message A user-readable message for the error.
      * @return
      */
-    protected static Map Error(String code, String message) {
-        Map result = new HashMap();
+    private static Map<String, String> Error(String code, String message) {
+        Map<String, String> result = new HashMap<>();
         result.put("error", code);
         result.put("message", message);
 
@@ -103,7 +102,7 @@ public class jsConnect {
     private static String GetJsConnectString(Map user, Map request, String clientID, String secret, String hashType, Boolean secure) {
         Map error = null;
 
-        long timestamp = 0;
+        long timestamp;
         try {
             timestamp = Long.parseLong(Val(request, "timestamp"));
         } catch (Exception ex) {
@@ -127,7 +126,7 @@ public class jsConnect {
             } else if (!Val(request, "client_id").equals(clientID)) {
                 error = jsConnect.Error("invalid_client", "Unknown client " + Val(request, "client_id") + ".");
             } else if (Val(request, "timestamp") == null && Val(request, "sig") == null) {
-                error = new HashMap();
+                error = new HashMap<String, String>();
                 if (user != null && !user.isEmpty()) {
                     error.put("name", user.containsKey("name") ? user.get("name") : "");
                     error.put("photourl", user.containsKey("photourl") ? user.get("photourl") : "");

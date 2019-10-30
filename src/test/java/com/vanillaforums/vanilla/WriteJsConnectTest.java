@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,12 +16,6 @@ class WriteJsConnectTest {
 
     public static final String CLIENT_ID = "clientID";
     public static final String SECRET = "secret";
-
-    @BeforeEach
-    void setUp() {
-        jsConnect.Now = 0;
-    }
-
 
     static void assertJsConnect(Map user, Map request, JSONObject expected, Boolean setTimestamp) throws JSONException {
         if (setTimestamp && request.containsKey("timestamp")) {
@@ -36,20 +31,23 @@ class WriteJsConnectTest {
         assertJsConnect(user, request, expected, true);
     }
 
+    private static JSONObject error(String error, String message) throws JSONException {
+        JSONObject expected = new JSONObject();
+        expected.put("error", error);
+        expected.put("message", message);
+
+        return expected;
+    }
+
+    @BeforeEach
+    void setUp() {
+        jsConnect.Now = 0;
+    }
+
     @Test
     void testDefault() throws JSONException {
-        Map<String, String> user = new HashMap<>();
-        user.put("name", "John PHP");
-        user.put("email", "john.php@example.com");
-        user.put("unique_id", "123");
-
-        Map<String, String> request = new HashMap<>();
-        request.put("client_id", "clientID");
-        request.put("ip", "127.0.0.1");
-        request.put("nonce", "nonceToken");
-        request.put("sig", "9d530946e38b35b780c0bdd55025ae8ea979ca962f6ae6c65636b819a9f0bd27");
-        request.put("timestamp", "1572315344");
-        request.put("v", "2");
+        Map<String, String> user = getDefaultUser();
+        Map<String, String> request = getDefaultRequest();
 
         JSONObject js = new JSONObject();
         js.put("client_id", "clientID");
@@ -62,6 +60,48 @@ class WriteJsConnectTest {
         js.put("v", "2");
 
         assertJsConnect(user, request, js);
+    }
+
+    @Test
+    void testDefaultBC() throws JSONException {
+        Map<String, String> user = getDefaultUser();
+        Map<String, String> request = getDefaultRequest();
+        request.put("sig", "94d2d624946149e2770960bbe16a9ed9");
+
+        JSONObject js = new JSONObject();
+        js.put("client_id", "clientID");
+        js.put("email", "john.php@example.com");
+        js.put("ip", "127.0.0.1");
+        js.put("name", "John PHP");
+        js.put("nonce", "nonceToken");
+        js.put("sig", "ad973c14c8efe2164d8fd67249430499");
+        js.put("unique_id", "123");
+        js.put("v", "2");
+
+        String timestamp = request.get("timestamp");
+        jsConnect.Now = Long.parseLong(timestamp);
+
+        String actual = jsConnect.GetJsConnectString(user, request, CLIENT_ID, SECRET, true);
+        JSONAssert.assertEquals("jsConnect strings don't match.", actual, js, JSONCompareMode.LENIENT);
+    }
+
+    private Map<String, String> getDefaultRequest() {
+        Map<String, String> request = new HashMap<>();
+        request.put("client_id", "clientID");
+        request.put("ip", "127.0.0.1");
+        request.put("nonce", "nonceToken");
+        request.put("sig", "9d530946e38b35b780c0bdd55025ae8ea979ca962f6ae6c65636b819a9f0bd27");
+        request.put("timestamp", "1572315344");
+        request.put("v", "2");
+        return request;
+    }
+
+    private Map<String, String> getDefaultUser() {
+        Map<String, String> user = new HashMap<>();
+        user.put("name", "John PHP");
+        user.put("email", "john.php@example.com");
+        user.put("unique_id", "123");
+        return user;
     }
 
     @Test
@@ -180,13 +220,7 @@ class WriteJsConnectTest {
 
     @Test
     void testTimedOut() throws JSONException {
-        Map<String, String> request = new HashMap<>();
-        request.put("client_id", "clientID");
-        request.put("ip", "127.0.0.1");
-        request.put("nonce", "nonceToken");
-        request.put("sig", "9d530946e38b35b780c0bdd55025ae8ea979ca962f6ae6c65636b819a9f0bd27");
-        request.put("timestamp", "1572315344");
-        request.put("v", "2");
+        Map<String, String> request = getDefaultRequest();
 
         JSONObject expected = error("invalid_request", "The timestamp is invalid.");
 
@@ -240,24 +274,10 @@ class WriteJsConnectTest {
 
     @Test
     void testInvalidCallback() {
-        Map<String, String> request = new HashMap<>();
-        request.put("client_id", "clientID");
-        request.put("ip", "127.0.0.1");
-        request.put("nonce", "nonceToken");
-        request.put("sig", "9d530946e38b35b780c0bdd55025ae8ea979ca962f6ae6c65636b819a9f0bd27");
-        request.put("timestamp", "1572315344");
-        request.put("v", "2");
+        Map<String, String> request = getDefaultRequest();
         request.put("callback", "<script>alert(document.domain);</script>");
 
         String actual = jsConnect.GetJsConnectString(new HashMap(), request, CLIENT_ID, SECRET, "sha256");
         assertEquals("console.error('Invalid callback parameter in jsConnect.')", actual);
-    }
-
-    private static JSONObject error(String error, String message) throws JSONException {
-        JSONObject expected = new JSONObject();
-        expected.put("error", error);
-        expected.put("message", message);
-
-        return expected;
     }
 }
