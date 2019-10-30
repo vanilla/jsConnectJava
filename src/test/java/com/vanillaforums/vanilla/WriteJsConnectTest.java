@@ -68,6 +68,28 @@ class WriteJsConnectTest {
     }
 
     @Test
+    void testDefaultTest() throws JSONException {
+        Map<String, String> user = getDefaultUser();
+        Map<String, String> request = getDefaultRequest();
+        request.remove("sig");
+
+        JSONObject js = new JSONObject();
+        js.put("client_id", "clientID");
+        js.put("email", "john.php@example.com");
+        js.put("ip", "127.0.0.1");
+        js.put("name", "John PHP");
+        js.put("nonce", "nonceToken");
+        js.put("sig", "40c511cac2db1ca7443d4f539f297a9510e8e011a04f66bdd91dc62f967e17ca");
+        js.put("unique_id", "123");
+        js.put("v", "2");
+
+        String actual = jsConnect.GetTestJsConnectString(user, request, CLIENT_ID, SECRET, "sha256");
+        JSONObject actualJSON = new JSONObject(actual);
+
+        JSONAssert.assertEquals("jsConnect strings don't match.", js, actualJSON, JSONCompareMode.STRICT);
+    }
+
+    @Test
     void testDefaultNoSignature() throws JSONException {
         HashMap<String, String> user = getDefaultUser();
         user.put("photourl", "...");

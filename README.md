@@ -11,6 +11,22 @@ The following files are included in this repo.
 * `web/index.jsp`
   This file offers an example usage. You can customize this page or start from scratch.
   
+## Change Log
+
+### Version 3
+
+- Added support for SHA1 and SHA256 hashing. We strongly recommend you use one of these hash methods.
+- Removed dependencies on some external libraries.
+- Added unit tests for most functionality.
+- Moved test SSO string to `jsConnect.GetTestJsConnectString()`.
+- Deprecated some of the methods from previous versions that use MD5. 
+
+### Version 2
+
+- Added more security information for the version 2 protocol of jsConnect.
+- Fixed some issues with malformed callbacks.
+- Added support for the jsConnect SSO string for embedded SSO.
+  
 ## Requirements
 
 This project requires Java 8 at a minimum. You can look at the [build](https://travis-ci.com/vanilla/jsConnectJava) to see what other versions are being built.

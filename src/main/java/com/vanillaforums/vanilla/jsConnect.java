@@ -81,6 +81,13 @@ public class jsConnect {
     }
 
     /**
+     * This is a test version of `GetJsConnectString()` that doesn't check the request.
+     */
+    public static String GetTestJsConnectString(Map user, Map request, String clientID, String secret, String hashType) {
+        return GetJsConnectString(user, request, clientID, secret, hashType, false);
+    }
+
+    /**
      * Returns a JSONP formatted string suitable to be consumed by jsConnect.
      * This is usually the only method you need to call in order to implement
      * jsConnect.
