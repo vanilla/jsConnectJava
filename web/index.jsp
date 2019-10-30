@@ -20,8 +20,7 @@ if (signedIn) {
 }
 
 // 4. Generate the jsConnect string.
-Boolean secure = true; // this should be true unless you are testing.
-String js = com.vanillaforums.vanilla.jsConnect.GetJsConnectString(user, request.getParameterMap(), clientID, secret, secure);
+String js = com.vanillaforums.vanilla.jsConnect.GetJsConnectString(user, request.getParameterMap(), clientID, secret, "sha256");
 
 out.write(js);
 %>

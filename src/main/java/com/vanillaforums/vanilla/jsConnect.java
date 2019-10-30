@@ -7,8 +7,6 @@ import javax.crypto.spec.SecretKeySpec;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.DatatypeConverter;
-import org.apache.commons.text.StringEscapeUtils;
 
 /**
  * @author Todd Burry <todd@vanillaforums.com>
@@ -20,6 +18,11 @@ public class jsConnect {
     static final String VERSION = "2";
     static final int TIMEOUT = 24 * 60;
     static final String HASH_ALGORITHM = "MD5";
+    static long Now = 0;
+
+    public static final String HASH_MD5 = "md5";
+    public static final String HASH_SHA1 = "sha1";
+    public static final String HASH_SHA256 = "sha256";
 
     /**
      * Convenience method that returns a map representing an error.
@@ -35,7 +38,6 @@ public class jsConnect {
 
         return result;
     }
-
     /**
      * Returns a JSONP formatted string suitable to be consumed by jsConnect.
      * This is usually the only method you need to call in order to implement
@@ -55,6 +57,50 @@ public class jsConnect {
      * @return The JSONP formatted string representing the current user.
      */
     public static String GetJsConnectString(Map user, Map request, String clientID, String secret, Boolean secure) {
+        return GetJsConnectString(user, request, clientID, secret, HASH_MD5, secure);
+    }
+
+    /**
+     * Returns a JSONP formatted string suitable to be consumed by jsConnect.
+     * This is usually the only method you need to call in order to implement
+     * jsConnect.
+     *
+     * @param user A map containing the user information. The map should have
+     * the following keys: - uniqueid: An ID that uniquely identifies the user
+     * in your system. This value should never change for a given user.
+     * @param request: A map containing the query string for the current
+     * request. You usually just pass in request.getParameterMap().
+     * @param clientID: The client ID for your site. This is usually configured
+     * on Vanilla's jsConnect configuration page.
+     * @param secret: The secret for your site. This is usually configured on
+     * Vanilla's jsConnect configuration page.
+     * @param hashType The hash algorithm to use.
+     * @return The JSONP formatted string representing the current user.
+     */
+    public static String GetJsConnectString(Map user, Map request, String clientID, String secret, String hashType) {
+        return GetJsConnectString(user, request, clientID, secret, hashType, true);
+    }
+
+    /**
+     * Returns a JSONP formatted string suitable to be consumed by jsConnect.
+     * This is usually the only method you need to call in order to implement
+     * jsConnect.
+     *
+     * @param user A map containing the user information. The map should have
+     * the following keys: - uniqueid: An ID that uniquely identifies the user
+     * in your system. This value should never change for a given user.
+     * @param request: A map containing the query string for the current
+     * request. You usually just pass in request.getParameterMap().
+     * @param clientID: The client ID for your site. This is usually configured
+     * on Vanilla's jsConnect configuration page.
+     * @param secret: The secret for your site. This is usually configured on
+     * Vanilla's jsConnect configuration page.
+     * @param hashType The hash algorithm to use.
+     * @param secure: Whether or not to check security on the request. You can
+     * leave this false for testing, but you should make it true in production.
+     * @return The JSONP formatted string representing the current user.
+     */
+    private static String GetJsConnectString(Map user, Map request, String clientID, String secret, String hashType, Boolean secure) {
         Map error = null;
 
         long timestamp = 0;
@@ -64,6 +110,12 @@ public class jsConnect {
             timestamp = 0;
         }
         long currentTimestamp = jsConnect.Timestamp();
+
+        if (request.containsKey("callback") &&
+            !request.get("callback").toString().matches("^[$a-zA-Z_][0-9a-zA-Z_$]*$")
+        ) {
+            return "console.error('Invalid callback parameter in jsConnect.')";
+        }
 
         if (secure) {
             if (Val(request, "v") == null) {
@@ -84,9 +136,9 @@ public class jsConnect {
                     error.put("photourl", "");
                 }
             } else if (timestamp == 0) {
-                error = jsConnect.Error("invalid_request", "The timestamp is missing or invalid.");
+                error = jsConnect.Error("invalid_request", "The timestamp parameter is missing or invalid.");
             } else if (Val(request, "sig") == null) {
-                error = jsConnect.Error("invalid_request", "Missing the sig paremeter.");
+                error = jsConnect.Error("invalid_request", "Missing the sig parameter.");
             } else if (Math.abs(currentTimestamp - timestamp) > TIMEOUT) {
                 error = jsConnect.Error("invalid_request", "The timestamp is invalid.");
             } else if (Val(request, "nonce") == null) {
@@ -95,7 +147,7 @@ public class jsConnect {
                 error = jsConnect.Error("invalid_request", "Missing the ip parameter.");
             } else {
                 // Make sure the signature checks out.
-                String sig = jsConnect.hash(Val(request, "ip") + Val(request, "nonce") + Long.toString(timestamp) + secret);
+                String sig = jsConnect.hash(Val(request, "ip") + Val(request, "nonce") + Long.toString(timestamp) + secret, hashType);
                 if (!sig.equals(Val(request, "sig"))) {
                     error = jsConnect.Error("access_denied", "Signature invalid.");
                 }
@@ -110,7 +162,9 @@ public class jsConnect {
             user.put("ip", Val(request, "ip"));
             user.put("nonce", Val(request, "nonce"));
             result = new LinkedHashMap(user);
-            SignJsConnect(result, clientID, secret, true);
+            String signature = SignJsConnect(result, clientID, secret, hashType);
+            result.put("client_id", clientID);
+            result.put("sig", signature);
             result.put("v", VERSION);
         } else {
             result = new LinkedHashMap();
@@ -119,7 +173,6 @@ public class jsConnect {
         }
 
         String json = jsConnect.JsonEncode(result);
-        request.callback =  StringEscapeUtils.escapeHtml(request.callback);
         if (Val(request, "callback") == null) {
             return json;
         } else {
@@ -161,17 +214,43 @@ public class jsConnect {
      * Compute the hash of a string.
      *
      * @param password The data to compute the hash on.
+     * @param hashType The hash algorithm to use.
      * @return A hex encoded string representing the hash of the string.
      */
-    public static String hash(String password) {
+    public static String hash(String password, String hashType) {
+        String alg;
         try {
-            java.security.MessageDigest digest = java.security.MessageDigest.getInstance(HASH_ALGORITHM);
+            switch (hashType) {
+                case HASH_MD5:
+                    alg = "MD5";
+                    break;
+                case HASH_SHA1:
+                    alg = "SHA-1";
+                    break;
+                case HASH_SHA256:
+                    alg = "SHA-256";
+                    break;
+                default:
+                    return "UNSUPPORTED HASH ALGORITHM";
+            }
+
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance(alg);
             digest.update(password.getBytes("UTF-8"));
             byte[] hash = digest.digest();
             return hexEncode(hash);
         } catch (Exception ex) {
             return "ERROR";
         }
+    }
+
+    /**
+     * Backwards compatible version of `hash()`.
+     *
+     * @param password The data to compute the hash on.
+     * @return A hex encoded string representing the hash of the string.
+     */
+    public static String hash(String password) {
+        return hash(password, HASH_MD5);
     }
 
     public static String hexEncode(byte[] hash) {
@@ -233,11 +312,10 @@ public class jsConnect {
      * Vanilla's jsConnect configuration page.
      * @param secret The secret of the site. This is usually configured on
      * Vanilla's jsConnect configuration page.
-     * @param setData Whether or not to add the signature information to the
-     * data.
+     * @param hashType The hash algorithm to use.
      * @return The computed signature of the data.
      */
-    public static String SignJsConnect(Map data, String clientID, String secret, Boolean setData) {
+    public static String SignJsConnect(Map data, String clientID, String secret, String hashType) {
         // Generate a sorted list of the keys.
         String[] keys = new String[data.keySet().size()];
         data.keySet().toArray(keys);
@@ -258,19 +336,34 @@ public class jsConnect {
                 sigStr.append("=");
                 sigStr.append(java.net.URLEncoder.encode(value, "UTF-8"));
             } catch (Exception ex) {
-                if (setData) {
-                    data.put("clientid", clientID);
-                    data.put("sig", "ERROR");
-                }
                 return "ERROR";
             }
         }
 
         // MD5 sign the String with the secret.
-        String signature = jsConnect.hash(sigStr.toString() + secret);
+        String signature = jsConnect.hash(sigStr.toString() + secret, hashType);
+
+        return signature;
+    }
+
+    /**
+     * Sign a jsConnect response. Responses are signed so that the site
+     * requesting the response knows that this is a valid site signing in.
+     *
+     * @param data The data to sign.
+     * @param clientID The client ID of the site. This is usually configured on
+     * Vanilla's jsConnect configuration page.
+     * @param secret The secret of the site. This is usually configured on
+     * Vanilla's jsConnect configuration page.
+     * @param setData Whether or not to add the signature information to the
+     * data.
+     * @return The computed signature of the data.
+     */
+    public static String SignJsConnect(Map data, String clientID, String secret, Boolean setData) {
+        String signature = SignJsConnect(data, clientID, secret, HASH_MD5);
 
         if (setData) {
-            data.put("clientid", clientID);
+            data.put("client_id", clientID);
             data.put("sig", signature);
         }
         return signature;
@@ -282,14 +375,13 @@ public class jsConnect {
      * @param user A map containing the user information. The map should have
      * the following keys: - uniqueid: An ID that uniquely identifies the user
      * in your system. This value should never change for a given user.
-     * @param clientID: The client ID for your site. This is usually configured
+     * @param client_id: The client ID for your site. This is usually configured
      * on Vanilla's jsConnect configuration page.
      * @param secret: The secret for your site. This is usually configured on
      * Vanilla's jsConnect configuration page.
      * @return SSO string.
      */
     public static String SSOString(Map user, String client_id, String secret) throws InvalidKeyException {
-
         if (!user.containsKey("client_id")) {
             user.put("client_id", client_id);
         }
@@ -297,7 +389,7 @@ public class jsConnect {
             user.put("client_id", client_id);
         }
 
-        String jsonBase64String = new String(DatatypeConverter.printBase64Binary(JsonEncode(user).getBytes()));
+        String jsonBase64String = Base64.getEncoder().encodeToString(JsonEncode(user).getBytes());
         String timestamp = String.valueOf(Timestamp());
 
         // Build the signature string.
@@ -330,14 +422,16 @@ public class jsConnect {
     }
 
     /**
-     * Returns the current timestamp of the server, suitable for synching with
-     * the site.
+     * Returns the current timestamp of the server, suitable for syncing with the site.
      *
      * @return The current timestamp.
      */
     public static long Timestamp() {
-        long result = System.currentTimeMillis() / 1000;
-        return result;
+        if (Now > 0) {
+            return Now;
+        } else {
+            long result = System.currentTimeMillis() / 1000;
+            return result;
+        }
     }
-
 }

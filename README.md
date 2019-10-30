@@ -11,4 +11,3 @@ The following files are included in this repo.
   
 ## Requirements
 1. Java 8
-1. Apache Commons Text v1
