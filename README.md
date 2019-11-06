@@ -1,6 +1,6 @@
 # Vanilla jsConnect Client Library for Java
 
-[![Travis (.org)](https://img.shields.io/travis/vanilla/jsConnectJava)](https://travis-ci.com/vanilla/jsConnectJava)
+[![Travis (.com)](https://img.shields.io/travis/com/vanilla/jsConnectJava)](https://travis-ci.com/vanilla/jsConnectJava)
 
 This repository contains the files you need to use Vanilla's jsConnect with a java project.
 
