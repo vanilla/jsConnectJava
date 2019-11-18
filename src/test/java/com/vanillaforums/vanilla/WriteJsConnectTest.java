@@ -52,7 +52,7 @@ class WriteJsConnectTest {
     @Test
     void testDefault() throws JSONException {
         Map<String, String> user = getDefaultUser();
-        Map<String, String> request = getDefaultRequest();
+        Map<String, Object> request = getDefaultRequest();
 
         JSONObject js = new JSONObject();
         js.put("client_id", "clientID");
@@ -70,7 +70,7 @@ class WriteJsConnectTest {
     @Test
     void testDefaultTest() throws JSONException {
         Map<String, String> user = getDefaultUser();
-        Map<String, String> request = getDefaultRequest();
+        Map<String, Object> request = getDefaultRequest();
         request.remove("sig");
 
         JSONObject js = new JSONObject();
@@ -94,7 +94,7 @@ class WriteJsConnectTest {
         HashMap<String, String> user = getDefaultUser();
         user.put("photourl", "...");
 
-        Map<String, String> request = getDefaultRequest();
+        Map<String, Object> request = getDefaultRequest();
         request.remove("timestamp");
         request.remove("sig");
 
@@ -109,7 +109,7 @@ class WriteJsConnectTest {
     @Test
     void testDefaultBC() throws JSONException {
         Map<String, String> user = getDefaultUser();
-        Map<String, String> request = getDefaultRequest();
+        Map<String, Object> request = getDefaultRequest();
         request.put("sig", "94d2d624946149e2770960bbe16a9ed9");
 
         JSONObject js = new JSONObject();
@@ -122,7 +122,7 @@ class WriteJsConnectTest {
         js.put("unique_id", "123");
         js.put("v", "2");
 
-        String timestamp = request.get("timestamp");
+        String timestamp = request.get("timestamp").toString();
         jsConnect.Now = Long.parseLong(timestamp);
 
         JSONObject actual = new JSONObject(jsConnect.GetJsConnectString(user, request, CLIENT_ID, SECRET, true));
@@ -132,7 +132,7 @@ class WriteJsConnectTest {
     @Test
     void testGuest() throws JSONException {
         Map<String, String> user = new HashMap<>();
-        Map<String, String> request = getDefaultRequest();
+        Map<String, Object> request = getDefaultRequest();
 
         JSONObject js = new JSONObject();
         js.put("name", "");
@@ -144,16 +144,16 @@ class WriteJsConnectTest {
     @Test
     void testBasicCallback() {
         Map<String, String> user = new HashMap<>();
-        Map<String, String> request = getDefaultRequest();
-        request.put("callback", "c");
+        Map<String, Object> request = getDefaultRequest();
+        request.put("callback", new String[] {"c"});
         fixTimestamp(request);
 
         String actual = jsConnect.GetJsConnectString(user, request, CLIENT_ID, SECRET, "sha256");
         assertEquals("c({\"name\":\"\",\"photourl\":\"\"});", actual);
     }
 
-    private Map<String, String> getDefaultRequest() {
-        Map<String, String> request = new HashMap<>();
+    private Map<String, Object> getDefaultRequest() {
+        Map<String, Object> request = new HashMap<>();
         request.put("client_id", "clientID");
         request.put("ip", "127.0.0.1");
         request.put("nonce", "nonceToken");
@@ -287,7 +287,7 @@ class WriteJsConnectTest {
 
     @Test
     void testTimedOut() throws JSONException {
-        Map<String, String> request = getDefaultRequest();
+        Map<String, Object> request = getDefaultRequest();
 
         JSONObject expected = error("invalid_request", "The timestamp is invalid.");
 
@@ -341,10 +341,51 @@ class WriteJsConnectTest {
 
     @Test
     void testInvalidCallback() {
-        Map<String, String> request = getDefaultRequest();
+        Map<String, Object> request = getDefaultRequest();
         request.put("callback", "<script>alert(document.domain);</script>");
 
         String actual = jsConnect.GetJsConnectString(new HashMap(), request, CLIENT_ID, SECRET, "sha256");
         assertEquals("console.error('Invalid callback parameter in jsConnect.')", actual);
+    }
+
+    @Test
+    void testEmptyStringCallback() throws JSONException {
+        HashMap<String, String> user = getDefaultUser();
+
+        Map<String, Object> request = getDefaultRequest();
+        request.put("callback", "");
+
+        JSONObject js = new JSONObject();
+        js.put("client_id", "clientID");
+        js.put("email", "john.php@example.com");
+        js.put("ip", "127.0.0.1");
+        js.put("name", "John PHP");
+        js.put("nonce", "nonceToken");
+        js.put("sig", "40c511cac2db1ca7443d4f539f297a9510e8e011a04f66bdd91dc62f967e17ca");
+        js.put("unique_id", "123");
+        js.put("v", "2");
+
+        assertJsConnect(user, request, js);
+    }
+
+    @Test
+    void testStringArrayCallback() throws JSONException {
+        HashMap<String, String> user = getDefaultUser();
+
+        Map<String, Object> request = getDefaultRequest();
+        String[] callback = { "" };
+        request.put("callback", callback);
+
+        JSONObject js = new JSONObject();
+        js.put("client_id", "clientID");
+        js.put("email", "john.php@example.com");
+        js.put("ip", "127.0.0.1");
+        js.put("name", "John PHP");
+        js.put("nonce", "nonceToken");
+        js.put("sig", "40c511cac2db1ca7443d4f539f297a9510e8e011a04f66bdd91dc62f967e17ca");
+        js.put("unique_id", "123");
+        js.put("v", "2");
+
+        assertJsConnect(user, request, js);
     }
 }
