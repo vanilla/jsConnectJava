@@ -1,5 +1,6 @@
 package com.vanillaforums.vanilla;
 
+import java.net.URI;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import javax.crypto.Mac;
@@ -67,17 +68,78 @@ public class jsConnect {
      * @param user A map containing the user information. The map should have
      * the following keys: - uniqueid: An ID that uniquely identifies the user
      * in your system. This value should never change for a given user.
-     * @param request: A map containing the query string for the current
+     * @param request A map containing the query string for the current
      * request. You usually just pass in request.getParameterMap().
-     * @param clientID: The client ID for your site. This is usually configured
+     * @param clientID The client ID for your site. This is usually configured
      * on Vanilla's jsConnect configuration page.
-     * @param secret: The secret for your site. This is usually configured on
+     * @param secret The secret for your site. This is usually configured on
      * Vanilla's jsConnect configuration page.
      * @param hashType The hash algorithm to use.
      * @return The JSONP formatted string representing the current user.
      */
     public static String GetJsConnectString(Map user, Map request, String clientID, String secret, String hashType) {
         return GetJsConnectString(user, request, clientID, secret, hashType, true);
+    }
+
+    /**
+     * Returns a response that will support jsConnect v2 or jsConnect v3.
+     *
+     * @param user A map containing the user information. The map should have the following keys:
+     *             - uniqueid: An ID that uniquely identifies the user in your system. This value should never change for a given user.
+     * @param uri The URI of the request. This should contain the jsConnect information.
+     * @param clientID The client ID for your site. This is usually configured on Vanilla's jsConnect configuration page.
+     * @param secret The secret for your site. This is usually configured on Vanilla's jsConnect configuration page.
+     * @param hashType The hash algorithm to use.
+     * @return Returns a response that indicates whether to output information or redirect.
+     */
+    public static Response getJsConnectResponse(Map user, URI uri, String clientID, String secret, String hashType) throws InvalidValueException {
+        Map<String, String> query = JsConnectV3.splitQuery(uri.getQuery());
+        Response response;
+
+        if (query.containsKey(JsConnectV3.FIELD_JWT)) {
+            // This is a v3 request.
+            JsConnectV3 jsc = new JsConnectV3();
+            Map<String, ?> userV3 = ConvertUserToV3(user);
+
+            jsc.setSigningCredentials(clientID, secret);
+
+            if (userV3.isEmpty()) {
+                jsc.setGuest(true);
+            } else {
+                for (Map.Entry<String, ?> entry : userV3.entrySet()){
+                    jsc.setUserField(entry.getKey(), entry.getValue());
+                }
+            }
+            String location = jsc.generateResponseLocation(query.get(JsConnectV3.FIELD_JWT));
+            response = new Response(302, location, "text/html;charset=utf-8");
+        } else {
+            String content = GetJsConnectString(user, query, clientID, secret, hashType);
+            response = new Response(200, content, "text/javascript;charset=utf-8");
+        }
+
+        return response;
+    }
+
+    /**
+     * Convert a jsConnect v2 user to v3.
+     * @param user The user to convert.
+     * @return Returns the converted user.
+     */
+    private static Map<String, ?> ConvertUserToV3(Map<?, ?> user) {
+        Map result = new HashMap();
+        for (Map.Entry<?, ?> entry : user.entrySet()) {
+            String key = entry.getKey().toString().toLowerCase();
+            switch (key) {
+                case "uniqueid":
+                    key = JsConnectV3.FIELD_UNIQUE_ID;
+                    break;
+                case "photourl":
+                    key = JsConnectV3.FIELD_PHOTO;
+                    break;
+            }
+            result.put(key, entry.getValue());
+        }
+        return result;
     }
 
     /**

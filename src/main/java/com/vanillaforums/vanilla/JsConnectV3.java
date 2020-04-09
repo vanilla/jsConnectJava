@@ -8,10 +8,10 @@ import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.Clock;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.util.*;
 
 public class JsConnectV3 {
     static final String VERSION = "java:3";
@@ -61,8 +61,8 @@ public class JsConnectV3 {
      * JsConnect constructor.
      */
     public JsConnectV3() {
-        this.user = new HashMap<String, Object>();
-        this.signingAlgorithm = "HS256";
+        this.user = new HashMap<>();
+        this.signingAlgorithm = ALG_HS256;
     }
 
     /**
@@ -100,6 +100,34 @@ public class JsConnectV3 {
             default:
                 throw new InvalidValueException("Invalid signing algorithm: " + alg);
         }
+    }
+
+    /**
+     * Split a query string into a map of its parts.
+     *
+     * @param query The query to split.
+     * @return Returns the split query
+     */
+    public static Map<String, String> splitQuery(String query) throws InvalidValueException {
+        final Map<String, String> queryPairs = new LinkedHashMap<>();
+
+        if (query == null) {
+            return queryPairs;
+        }
+
+        final String[] pairs = query.split("&");
+        for (String pair : pairs) {
+            final int idx = pair.indexOf("=");
+            final String key;
+            try {
+                key = idx > 0 ? URLDecoder.decode(pair.substring(0, idx), "UTF-8") : pair;
+                final String value = idx > 0 && pair.length() > idx + 1 ? URLDecoder.decode(pair.substring(idx + 1), "UTF-8") : null;
+                queryPairs.put(key, value);
+            } catch (UnsupportedEncodingException e) {
+                throw new InvalidValueException("The query contains an invalid query encoding.");
+            }
+        }
+        return queryPairs;
     }
 
     /**
@@ -172,16 +200,6 @@ public class JsConnectV3 {
     }
 
     /**
-     * Set the current user's unique ID.
-     *
-     * @param id The new unique ID.
-     * @return $this
-     */
-    public JsConnectV3 setUniqueID(String id) {
-        return this.setUserField(FIELD_UNIQUE_ID, id);
-    }
-
-    /**
      * Validate that a field exists in a collection.
      *
      * @param field The name of the field to validate.
@@ -209,6 +227,16 @@ public class JsConnectV3 {
 //    }
 
     /**
+     * Set the current user's unique ID.
+     *
+     * @param id The new unique ID.
+     * @return $this
+     */
+    public JsConnectV3 setUniqueID(String id) {
+        return this.setUserField(FIELD_UNIQUE_ID, id);
+    }
+
+    /**
      * Generate the location for an SSO redirect.
      *
      * @param requestJWT
@@ -232,6 +260,21 @@ public class JsConnectV3 {
         String response = this.jwtEncode(user, state);
         String location = request.get(JsConnectV3.FIELD_REDIRECT_URL).asString() + "#jwt=" + response;
         return location;
+    }
+
+    /**
+     * Generate the response location from a URI object.
+     *
+     * @param uri The request URI.
+     * @return Returns a string URI.
+     */
+    public String generateResponseLocation(URI uri) throws InvalidValueException, FieldNotFoundException {
+        final Map<String, String> query = splitQuery(uri.getQuery());
+        final String jwt = query.getOrDefault(FIELD_JWT, "");
+        if (jwt.equals("")) {
+            throw new FieldNotFoundException(FIELD_JWT, "query");
+        }
+        return generateResponseLocation(jwt);
     }
 
     /**
@@ -343,20 +386,20 @@ public class JsConnectV3 {
     /**
      * Get the algorithm used to sign tokens.
      */
-    public String getSigningAlgorithm() {
-        return this.signingAlgorithm;
-    }
+//    public String getSigningAlgorithm() {
+//        return this.signingAlgorithm;
+//    }
 
     /**
      * Set the algorithm used to sign tokens.
      *
      * @param signingAlgorithm The new signing algorithm.
      */
-    public JsConnectV3 setSigningAlgorithm(String signingAlgorithm) throws InvalidValueException {
-        Algorithm test = createAlgorithm(signingAlgorithm, "a");
-        this.signingAlgorithm = signingAlgorithm;
-        return this;
-    }
+//    public JsConnectV3 setSigningAlgorithm(String signingAlgorithm) throws InvalidValueException {
+//        Algorithm test = createAlgorithm(signingAlgorithm, "a");
+//        this.signingAlgorithm = signingAlgorithm;
+//        return this;
+//    }
 
     /**
      * Get the client ID that is used to sign JWTs.

@@ -1,6 +1,8 @@
 package com.vanillaforums.vanilla;
 
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.exceptions.SignatureVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import org.apache.commons.codec.binary.StringUtils;
 import org.json.JSONException;
@@ -22,7 +24,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.List.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for the `JsConnectV3` class.
@@ -48,7 +52,7 @@ public class JsConnectV3Test {
     }
 
     /**
-     * Split a query strig into a map of its parts.
+     * Split a query string into a map of its parts.
      *
      * @param query The query to split.
      * @return Returns the split query
@@ -125,7 +129,7 @@ public class JsConnectV3Test {
      */
     @ParameterizedTest
     @MethodSource("provideTests")
-    public void testData(String name, JSONObject data) throws InvalidValueException, UnsupportedEncodingException, JSONException, URISyntaxException {
+    public void testData(String name, JSONObject data) throws InvalidValueException, UnsupportedEncodingException, JSONException, URISyntaxException, FieldNotFoundException {
         JsConnectV3 jsc = new JsConnectV3();
 
         jsc.setSigningCredentials((String) data.get("clientID"), (String) data.get("secret"));
@@ -142,12 +146,14 @@ public class JsConnectV3Test {
         }
 
         try {
-            String responseUrl = jsc.generateResponseLocation((String) data.get("jwt"));
+            URI requestUri = new URI("https://example.com?jwt=" + data.get(JsConnectV3.FIELD_JWT));
+            String responseUrl = jsc.generateResponseLocation(requestUri);
+            assertTrue(data.containsKey("response"));
             assertJWTUrlsEqual((String) data.get("response"), responseUrl);
-        } catch (Exception ex) {
-            if (!data.containsKey("exception")) {
-                throw ex;
-            }
+        } catch (TokenExpiredException ex) {
+            assertEquals("ExpiredException", data.get("exception"));
+        } catch (SignatureVerificationException ex) {
+            assertEquals("SignatureInvalidException", data.get("exception"));
         }
     }
 
@@ -159,6 +165,10 @@ public class JsConnectV3Test {
         assertEquals("foo", jsc.setName("foo").getName());
         assertEquals("foo@example.com", jsc.setEmail("foo@example.com").getEmail());
         assertEquals("https://example.com", jsc.setPhotoURL("https://example.com").getPhotoURL());
+
+        List<Integer> roles = of(1, 2, 3);
+        assertEquals(roles, jsc.setRoles(roles).getRoles());
+
 
         jsc.setSigningCredentials("id", "secret");
         assertEquals("id", jsc.getSigningClientID());

@@ -68,7 +68,7 @@
         "clientID": "123",
         "secret": "secret",
         "version": "test:3",
-        "timestamp": 1577836800,
+        "timestamp": 1578836800,
         "user": {
             "id": "id123",
             "name": "username",
