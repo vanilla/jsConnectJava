@@ -8,7 +8,7 @@ This repository contains the files you need to use Vanilla's jsConnect with a ja
 
 There are two ways to install jsConnect.
 
-1. You can install this package via maven. It's package name is `com.vanillaforums.jsconnect`.
+1. You can build this project from sources and use its jar file.
 2. You can copy the source files directly into your application. All of the source files you need are located at `src/main/java/com/vanillaforums/vanilla/*.java`.
 
 ## Usage
