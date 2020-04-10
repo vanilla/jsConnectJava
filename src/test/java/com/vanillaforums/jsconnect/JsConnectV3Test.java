@@ -19,10 +19,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.List.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -166,7 +163,10 @@ public class JsConnectV3Test {
         assertEquals("foo@example.com", jsc.setEmail("foo@example.com").getEmail());
         assertEquals("https://example.com", jsc.setPhotoURL("https://example.com").getPhotoURL());
 
-        List<Integer> roles = of(1, 2, 3);
+        List<Integer> roles = new ArrayList<>();
+        roles.add(1);
+        roles.add(2);
+        roles.add(3);
         assertEquals(roles, jsc.setRoles(roles).getRoles());
 
 
