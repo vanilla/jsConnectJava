@@ -1,4 +1,4 @@
-package com.vanillaforums.vanilla;
+package com.vanillaforums.jsconnect;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.exceptions.SignatureVerificationException;

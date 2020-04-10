@@ -1,4 +1,4 @@
-package com.vanillaforums.vanilla;
+package com.vanillaforums.jsconnect;
 
 import java.net.URI;
 import java.security.InvalidKeyException;

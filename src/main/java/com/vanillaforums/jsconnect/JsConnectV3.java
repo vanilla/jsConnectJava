@@ -1,4 +1,4 @@
-package com.vanillaforums.vanilla;
+package com.vanillaforums.jsconnect;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
@@ -469,7 +469,7 @@ public class JsConnectV3 {
         protected Date today;
 
         public StaticClock(long timestamp) {
-            this.today = new Date((long) timestamp * 1000);
+            this.today = new Date(timestamp * 1000);
         }
 
         @Override

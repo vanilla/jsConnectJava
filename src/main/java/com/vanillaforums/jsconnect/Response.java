@@ -1,4 +1,4 @@
-package com.vanillaforums.vanilla;
+package com.vanillaforums.jsconnect;
 
 /**
  * Represents a very basic HTTP response class for use with jsConnect.
