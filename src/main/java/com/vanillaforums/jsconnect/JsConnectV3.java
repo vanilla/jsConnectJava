@@ -13,6 +13,9 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.util.*;
 
+/**
+ * Implements the jsConnect 3 protocol.
+ */
 public class JsConnectV3 {
     static final String VERSION = "java:3";
 
@@ -34,23 +37,14 @@ public class JsConnectV3 {
 
     static final int TIMEOUT = 600;
 
-    /**
-     *
-     */
     protected String signingSecret = "";
 
-    /**
-     * @var String String
-     */
     protected String signingClientID = "";
 
     protected Map<String, Object> user;
 
     protected boolean guest = false;
 
-    /**
-     *
-     */
     protected String signingAlgorithm;
 
     protected String version = null;
@@ -72,14 +66,14 @@ public class JsConnectV3 {
      * @param valueName The name of the value for the exception message.
      * @throws InvalidValueException Throws an exception when the value is empty.
      */
-//    protected static void validateNotEmpty(Object value, String valueName) throws InvalidValueException {
-//        if (value == null) {
-//            throw new InvalidValueException(valueName + " is required.");
-//        }
-//        if (value == "") {
-//            throw new InvalidValueException(valueName + " cannot be empty.");
-//        }
-//    }
+    protected static void validateNotEmpty(Object value, String valueName) throws InvalidValueException {
+        if (value == null) {
+            throw new InvalidValueException(valueName + " is required.");
+        }
+        if (value == "") {
+            throw new InvalidValueException(valueName + " cannot be empty.");
+        }
+    }
 
     /**
      * Create the algorithm with the given name.
@@ -210,21 +204,21 @@ public class JsConnectV3 {
      * @throws FieldNotFoundException Throws an exception when the field is not in the array.
      * @throws InvalidValueException Throws an exception when the collection isn"t an array or the value is empty.
      */
-//    protected static Object validateFieldExists(String field, Object collection, String collectionName, Boolean validateEmpty) throws InvalidValueException, FieldNotFoundException {
-//        if (!(collection instanceof Map)) {
-//            throw new InvalidValueException("Invalid array: $collectionName");
-//        }
-//
-//        if (!((Map) collection).containsKey(field)) {
-//            throw new FieldNotFoundException(field, collectionName);
-//        }
-//        Object value = ((Map) collection).get(field);
-//        if (validateEmpty && (value == "" || value == null)) {
-//            throw new InvalidValueException("Field cannot be empty: " + collectionName + "[" + field + "]");
-//        }
-//
-//        return value;
-//    }
+    protected static Object validateFieldExists(String field, Object collection, String collectionName, Boolean validateEmpty) throws InvalidValueException, FieldNotFoundException {
+        if (!(collection instanceof Map)) {
+            throw new InvalidValueException("Invalid array: $collectionName");
+        }
+
+        if (!((Map) collection).containsKey(field)) {
+            throw new FieldNotFoundException(field, collectionName);
+        }
+        Object value = ((Map) collection).get(field);
+        if (validateEmpty && (value == "" || value == null)) {
+            throw new InvalidValueException("Field cannot be empty: " + collectionName + "[" + field + "]");
+        }
+
+        return value;
+    }
 
     /**
      * Set the current user's unique ID.
@@ -271,9 +265,9 @@ public class JsConnectV3 {
     public String generateResponseLocation(URI uri) throws InvalidValueException, FieldNotFoundException {
         final Map<String, String> query = splitQuery(uri.getQuery());
         final String jwt = query.getOrDefault(FIELD_JWT, "");
-        if (jwt.equals("")) {
-            throw new FieldNotFoundException(FIELD_JWT, "query");
-        }
+
+        validateFieldExists(FIELD_JWT, query, "query", true);
+
         return generateResponseLocation(jwt);
     }
 
@@ -297,8 +291,10 @@ public class JsConnectV3 {
     }
 
     /**
-     * @param jwt
-     * @return array
+     * Decode a JWT.
+     *
+     * @param jwt The JWT to decode.
+     * @return array Returns the payload of the decoded JWT.
      */
     protected Map<String, Claim> jwtDecode(String jwt) {
         Algorithm algorithm = Algorithm.HMAC256(this.signingSecret);
@@ -384,24 +380,6 @@ public class JsConnectV3 {
     }
 
     /**
-     * Get the algorithm used to sign tokens.
-     */
-//    public String getSigningAlgorithm() {
-//        return this.signingAlgorithm;
-//    }
-
-    /**
-     * Set the algorithm used to sign tokens.
-     *
-     * @param signingAlgorithm The new signing algorithm.
-     */
-//    public JsConnectV3 setSigningAlgorithm(String signingAlgorithm) throws InvalidValueException {
-//        Algorithm test = createAlgorithm(signingAlgorithm, "a");
-//        this.signingAlgorithm = signingAlgorithm;
-//        return this;
-//    }
-
-    /**
      * Get the client ID that is used to sign JWTs.
      *
      * @return String
@@ -422,6 +400,11 @@ public class JsConnectV3 {
         return this;
     }
 
+    /**
+     * Get the currently signed in user.
+     *
+     * @return Returns a map that contains all of the fields on a user.
+     */
     public Map<String, ?> getUser() {
         return this.user;
     }
@@ -429,7 +412,7 @@ public class JsConnectV3 {
     /**
      * Get the roles on the user.
      *
-     * @return
+     * @return Returns a list of roles.
      */
     public List<?> getRoles() {
         return (List<?>) this.getUserField(FIELD_ROLES);
@@ -448,7 +431,7 @@ public class JsConnectV3 {
     /**
      * Get the version used to sign responses.
      *
-     * @return
+     * @return Returns a version string.
      */
     public String getVersion() {
         return this.version == null ? VERSION : this.version;
@@ -465,7 +448,10 @@ public class JsConnectV3 {
         return this;
     }
 
-    protected class StaticClock implements Clock {
+    /**
+     * Allows us to validate and sign JWTs with a custom timestamp.
+     */
+    protected static class StaticClock implements Clock {
         protected Date today;
 
         public StaticClock(long timestamp) {
