@@ -1,0 +1,85 @@
+{
+    "bad-secret": {
+        "jwt": "eyJraWQiOiIxMjMiLCJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdCI6eyJuIjoibm9uY2UifSwicnVybCI6Imh0dHBzOlwvXC9leGFtcGxlLmNvbVwvcmVkaXJlY3QiLCJ2IjoidGVzdDozIiwiaWF0IjoxNTc3ODM2ODAwLCJleHAiOjE1Nzc4Mzc0MDB9.4BkmYecGMjeggbNeEesu_258EEPjnfljjfEWv8kY9Xk",
+        "clientID": "123",
+        "secret": "foo",
+        "version": "test:3",
+        "timestamp": 1577836800,
+        "user": {
+            "id": "id123",
+            "name": "username",
+            "email": "user@example.com",
+            "photo": "https://example.com/avatar.jpg",
+            "roles": [
+                1,
+                2
+            ]
+        },
+        "exception": "SignatureInvalidException",
+        "message": "Signature verification failed"
+    },
+    "basic": {
+        "jwt": "eyJraWQiOiIxMjMiLCJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdCI6eyJuIjoibm9uY2UifSwicnVybCI6Imh0dHBzOlwvXC9leGFtcGxlLmNvbVwvcmVkaXJlY3QiLCJ2IjoidGVzdDozIiwiaWF0IjoxNTc3ODM2ODAwLCJleHAiOjE1Nzc4Mzc0MDB9.4BkmYecGMjeggbNeEesu_258EEPjnfljjfEWv8kY9Xk",
+        "clientID": "123",
+        "secret": "secret",
+        "version": "test:3",
+        "timestamp": 1577836800,
+        "user": {
+            "id": "id123",
+            "name": "username",
+            "email": "user@example.com",
+            "photo": "https://example.com/avatar.jpg",
+            "roles": [
+                1,
+                2
+            ]
+        },
+        "response": "https://example.com/redirect#jwt=eyJraWQiOiIxMjMiLCJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1Ijp7ImlkIjoiaWQxMjMiLCJuYW1lIjoidXNlcm5hbWUiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJwaG90byI6Imh0dHBzOlwvXC9leGFtcGxlLmNvbVwvYXZhdGFyLmpwZyIsInJvbGVzIjpbMSwyXX0sInN0Ijp7Im4iOiJub25jZSJ9LCJ2IjoidGVzdDozIiwiaWF0IjoxNTc3ODM2ODAwLCJleHAiOjE1Nzc4Mzc0MDB9.vce8QVu85943taJ5mI8orVKSHqrGUC6xsrE_irLO_1Y"
+    },
+    "basic-guest": {
+        "jwt": "eyJraWQiOiIxMjMiLCJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdCI6eyJuIjoibm9uY2UifSwicnVybCI6Imh0dHBzOlwvXC9leGFtcGxlLmNvbVwvcmVkaXJlY3QiLCJ2IjoidGVzdDozIiwiaWF0IjoxNTc3ODM2ODAwLCJleHAiOjE1Nzc4Mzc0MDB9.4BkmYecGMjeggbNeEesu_258EEPjnfljjfEWv8kY9Xk",
+        "clientID": "123",
+        "secret": "secret",
+        "version": "test:3",
+        "timestamp": 1577836800,
+        "user": {},
+        "response": "https://example.com/redirect#jwt=eyJraWQiOiIxMjMiLCJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1Ijp7fSwic3QiOnsibiI6Im5vbmNlIn0sInYiOiJ0ZXN0OjMiLCJpYXQiOjE1Nzc4MzY4MDAsImV4cCI6MTU3NzgzNzQwMH0.NiGvwuWfaDbAr9NKiLRL0OwfnddQR1vVH501sjfyVgE"
+    },
+    "basic-state": {
+        "jwt": "eyJraWQiOiIxMjMiLCJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdCI6eyJ0IjoiXC9mb28iLCJuIjoibm9uY2UifSwicnVybCI6Imh0dHBzOlwvXC9leGFtcGxlLmNvbVwvcmVkaXJlY3QiLCJ2IjoidGVzdDozIiwiaWF0IjoxNTc3ODM2ODAwLCJleHAiOjE1Nzc4Mzc0MDB9.s2fl4Iela3Tjk4PJqzcbtSNC0IrO_bQdk8Gn3UUFnys",
+        "clientID": "123",
+        "secret": "secret",
+        "version": "test:3",
+        "timestamp": 1577836800,
+        "user": {
+            "id": "id123",
+            "name": "username",
+            "email": "user@example.com",
+            "photo": "https://example.com/avatar.jpg",
+            "roles": [
+                1,
+                2
+            ]
+        },
+        "response": "https://example.com/redirect#jwt=eyJraWQiOiIxMjMiLCJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1Ijp7ImlkIjoiaWQxMjMiLCJuYW1lIjoidXNlcm5hbWUiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJwaG90byI6Imh0dHBzOlwvXC9leGFtcGxlLmNvbVwvYXZhdGFyLmpwZyIsInJvbGVzIjpbMSwyXX0sInN0Ijp7InQiOiJcL2ZvbyIsIm4iOiJub25jZSJ9LCJ2IjoidGVzdDozIiwiaWF0IjoxNTc3ODM2ODAwLCJleHAiOjE1Nzc4Mzc0MDB9.yzQBw_8D0IqV6u2sBO-IYvf64QN1hDNhS5UCud-n96U"
+    },
+    "expired-token": {
+        "jwt": "eyJraWQiOiIxMjMiLCJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdCI6eyJuIjoibm9uY2UifSwicnVybCI6Imh0dHBzOlwvXC9leGFtcGxlLmNvbVwvcmVkaXJlY3QiLCJ2IjoidGVzdDozIiwiaWF0IjoxNTc3ODM2ODAwLCJleHAiOjE1Nzc4Mzc0MDB9.4BkmYecGMjeggbNeEesu_258EEPjnfljjfEWv8kY9Xk",
+        "clientID": "123",
+        "secret": "secret",
+        "version": "test:3",
+        "timestamp": 1578836800,
+        "user": {
+            "id": "id123",
+            "name": "username",
+            "email": "user@example.com",
+            "photo": "https://example.com/avatar.jpg",
+            "roles": [
+                1,
+                2
+            ]
+        },
+        "exception": "ExpiredException",
+        "message": "Expired token"
+    }
+}

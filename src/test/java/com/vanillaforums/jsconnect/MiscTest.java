@@ -1,4 +1,4 @@
-package com.vanillaforums.vanilla;
+package com.vanillaforums.jsconnect;
 
 import org.json.JSONException;
 import org.json.JSONObject;
