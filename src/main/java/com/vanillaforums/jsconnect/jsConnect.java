@@ -179,8 +179,10 @@ public class jsConnect {
         }
         long currentTimestamp = jsConnect.Timestamp();
 
-        if (request.containsKey("callback") &&
-            !request.get("callback").toString().matches("^[$a-zA-Z_][0-9a-zA-Z_$]*$")
+        String callback = Val(request, "callback", "");
+
+        if (!callback.equals("") &&
+            !callback.matches("^[$a-zA-Z_][0-9a-zA-Z_$]*$")
         ) {
             return "console.error('Invalid callback parameter in jsConnect.')";
         }
@@ -242,10 +244,10 @@ public class jsConnect {
         }
 
         String json = jsConnect.JsonEncode(result);
-        if (Val(request, "callback") == null) {
+        if (callback.equals("")) {
             return json;
         } else {
-            return Val(request, "callback") + "(" + json + ");";
+            return callback + "(" + json + ");";
         }
     }
 
